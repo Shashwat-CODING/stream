@@ -81,20 +81,18 @@ app.get('/streams/:id', async (req, res) => {
         ];
         // 3. Get html5player URL (fallback to a default if not found)
         let html5player = null;
-        // Try to extract from playerResponse or use a default
         if (playerResponse?.assets?.js) {
             html5player = 'https://www.youtube.com' + playerResponse.assets.js;
         } else {
-            // fallback: use a known working player js
             html5player = 'https://www.youtube.com/s/player/69b31e11/player-plasma-ias-tablet-en_US.vflset/base.js';
         }
-        // 4. Decipher formats
-        const deciphered = await decipherFormats(allFormats, html5player);
-        // 5. Respond with deciphered formats
+        // 4. Decipher all formats and attach deciphered URLs
+        const decipheredFormats = await sig.decipherFormats(allFormats, html5player, {});
+        // 5. Respond with all deciphered formats (with URLs)
         res.json({
             videoId,
             title: playerResponse.videoDetails?.title,
-            formats: deciphered
+            formats: decipheredFormats
         });
     } catch (err) {
         console.error('Error in /streams/:id:', err);
