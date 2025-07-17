@@ -7,6 +7,22 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 
+// Read cookies from old/cookies.json
+function getCookies() {
+    const cookiesPath = 'old/cookies.json';
+    if (!fs.existsSync(cookiesPath)) {
+        throw new Error('cookies.json not found');
+    }
+    const cookiesData = JSON.parse(fs.readFileSync(cookiesPath, 'utf8'));
+    if (Array.isArray(cookiesData)) {
+        return cookiesData.map(c => `${c.name}=${c.value}`).join('; ');
+    } else if (typeof cookiesData === 'object') {
+        return Object.entries(cookiesData).map(([k, v]) => `${k}=${v}`).join('; ');
+    } else {
+        throw new Error('Invalid cookies.json format');
+    }
+}
+
 // Helper: Extract ytInitialPlayerResponse from HTML
 function extractPlayerResponse(html) {
     const match = html.match(/ytInitialPlayerResponse\s*=\s*(\{.*?\});/s);
@@ -17,9 +33,11 @@ function extractPlayerResponse(html) {
 // Helper: Fetch and extract player response for a video ID
 async function fetchPlayerResponse(videoId) {
     const url = `https://m.youtube.com/watch?v=${videoId}`;
+    const cookieHeader = getCookies();
     const headers = {
         'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36',
         'Referer': 'https://m.youtube.com/',
+        'Cookie': cookieHeader,
     };
     const res = await axios.get(url, { headers });
     return extractPlayerResponse(res.data);
