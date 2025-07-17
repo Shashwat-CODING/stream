@@ -3,8 +3,24 @@ const fs = require('fs');
 
 // --- Config ---
 const videoId = "G9wBwVnn4m0";
-const poToken = "Igha9Vr3Mo2g7w=="; // You said to use it
 const url = `https://m.youtube.com/watch?v=${videoId}`;
+
+// --- Dynamic cookies logic ---
+async function fetchRemoteCookies() {
+    try {
+        const resp = await axios.get('http://34.131.128.7:5000/cookies', { timeout: 10000000 });
+        if (resp.data && Array.isArray(resp.data.cookies)) {
+            return resp.data.cookies.map(c => `${c.name}=${c.value}`).join('; ');
+        } else if (resp.data && Array.isArray(resp.data)) {
+            // fallback: if response is just an array
+            return resp.data.map(c => `${c.name}=${c.value}`).join('; ');
+        } else {
+            throw new Error('Invalid cookies API response');
+        }
+    } catch (err) {
+        throw new Error('❌ Failed to fetch cookies: ' + err.message);
+    }
+}
 
 /**
  * Extract ytInitialPlayerResponse from HTML
@@ -19,10 +35,11 @@ function extractPlayerResponse(html) {
  * Fetch MWEB YouTube HTML and extract player response
  */
 async function fetchMwebPlayerResponse() {
+    const cookieHeader = await fetchRemoteCookies();
     const headers = {
         'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36',
         'Referer': 'https://m.youtube.com/',
-        'Cookie': `POTOKEN=${poToken}`, // optional: only if server uses it this way
+        'Cookie': cookieHeader,
     };
 
     console.log(`🌐 Fetching HTML from MWEB...`);

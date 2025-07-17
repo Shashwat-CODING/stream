@@ -1,8 +1,8 @@
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const sig = require("./sig_stuff/sig.js");
-const utils = require("./sig_stuff/utils.js");
+const sig = require("../sig_stuff/sig.js");
+const utils = require("../sig_stuff/utils.js");
 
 // Read res.json
 const resPath = path.join(__dirname, "res.json");

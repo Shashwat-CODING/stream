@@ -1,27 +1,38 @@
 const express = require('express');
 const axios = require('axios');
 const sig = require('./sig_stuff/sig.js');
-const fs = require('fs');
-const path = require('path');
 
 const app = express();
 const PORT = 3000;
 
-// Read cookies from old/cookies.json
-function getCookies() {
-    const cookiesPath = 'cookies.json';
-    if (!fs.existsSync(cookiesPath)) {
-        throw new Error('cookies.json not found');
-    }
-    const cookiesData = JSON.parse(fs.readFileSync(cookiesPath, 'utf8'));
-    if (Array.isArray(cookiesData)) {
-        return cookiesData.map(c => `${c.name}=${c.value}`).join('; ');
-    } else if (typeof cookiesData === 'object') {
-        return Object.entries(cookiesData).map(([k, v]) => `${k}=${v}`).join('; ');
-    } else {
-        throw new Error('Invalid cookies.json format');
+// --- Dynamic cookies logic ---
+let cookiesHeader = '';
+let cookiesReady = false;
+
+async function fetchRemoteCookies() {
+    try {
+        const resp = await axios.get('http://34.131.128.7:5000/cookies', { timeout: 10000000 });
+        if (resp.data && Array.isArray(resp.data.cookies)) {
+            cookiesHeader = resp.data.cookies.map(c => `${c.name}=${c.value}`).join('; ');
+            cookiesReady = true;
+            console.log('✅ Cookies fetched and ready.');
+        } else if (resp.data && Array.isArray(resp.data)) {
+            // fallback: if response is just an array
+            cookiesHeader = resp.data.map(c => `${c.name}=${c.value}`).join('; ');
+            cookiesReady = true;
+            console.log('✅ Cookies fetched and ready.');
+        } else {
+            throw new Error('Invalid cookies API response');
+        }
+    } catch (err) {
+        cookiesReady = false;
+        console.error('❌ Failed to fetch cookies:', err.message);
     }
 }
+
+// Fetch cookies on startup and every 5 hours
+fetchRemoteCookies();
+setInterval(fetchRemoteCookies, 5 * 60 * 60 * 1000); // 5 hours
 
 // Helper: Extract ytInitialPlayerResponse from HTML
 function extractPlayerResponse(html) {
@@ -32,12 +43,14 @@ function extractPlayerResponse(html) {
 
 // Helper: Fetch and extract player response for a video ID
 async function fetchPlayerResponse(videoId) {
+    if (!cookiesReady) {
+        throw new Error('Cookies not loaded yet, please try again in a moment.');
+    }
     const url = `https://m.youtube.com/watch?v=${videoId}`;
-    const cookieHeader = getCookies();
     const headers = {
         'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36',
         'Referer': 'https://m.youtube.com/',
-        'Cookie': cookieHeader,
+        'Cookie': cookiesHeader,
     };
     const res = await axios.get(url, { headers });
     return extractPlayerResponse(res.data);
@@ -52,6 +65,9 @@ async function decipherFormats(formats, html5player) {
 app.get('/streams/:id', async (req, res) => {
     const videoId = req.params.id;
     try {
+        if (!cookiesReady) {
+            return res.status(503).json({ error: 'Cookies not loaded yet, please try again in a moment.' });
+        }
         // 1. Fetch player response
         const playerResponse = await fetchPlayerResponse(videoId);
         const streamingData = playerResponse.streamingData;
