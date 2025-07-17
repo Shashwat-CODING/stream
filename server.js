@@ -9,7 +9,7 @@ const PORT = 3000;
 
 // Read cookies from old/cookies.json
 function getCookies() {
-    const cookiesPath = 'old/cookies.json';
+    const cookiesPath = 'cookies.json';
     if (!fs.existsSync(cookiesPath)) {
         throw new Error('cookies.json not found');
     }
