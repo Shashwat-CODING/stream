@@ -5,10 +5,10 @@ zerops:
 
       # pull your image from GitHub Container Registy
       prepareCommands:
-        - docker pull ghcr.io/shashwat-coding/streamion:main@sha256:3b592c919a2818942a58a3e5eb70bac656b2c7dd13ad142dd5bc249f9c604219
+        - docker pull ghcr.io/shashwat-coding/streamion:main@sha256:1b7d378a4f360acf2ab0818ab053ea9123ba4d385ce4c22bbdadd5928ec091bf
 
       # run your container
-      start: docker run --network=host ghcr.io/shashwat-coding/streamion:main@sha256:3b592c919a2818942a58a3e5eb70bac656b2c7dd13ad142dd5bc249f9c604219
+      start: docker run --network=host ghcr.io/shashwat-coding/streamion:main@sha256:1b7d378a4f360acf2ab0818ab053ea9123ba4d385ce4c22bbdadd5928ec091bf
 
       # expose port (change if your app uses something else)
       ports:
