@@ -5,10 +5,10 @@ zerops:
 
       # pull your image from GitHub Container Registy
       prepareCommands:
-        - docker pull ghcr.io/shashwat-coding/laughing-potato:main@sha256:958e56d1a2a2f78ae1357bb8dda0960932adc497f8dc9503fb205aca2e55af50
+        - docker pull ghcr.io/shashwat-coding/laughing-potato:main@sha256:7aa0519e3d7dfc34aa74773681aeff16908512630c23540a2c17f1f4f09c1fde
 
       # run your container
-      start: docker run --network=host ghcr.io/shashwat-coding/laughing-potato:main@sha256:958e56d1a2a2f78ae1357bb8dda0960932adc497f8dc9503fb205aca2e55af50
+      start: docker run --network=host ghcr.io/shashwat-coding/laughing-potato:main@sha256:7aa0519e3d7dfc34aa74773681aeff16908512630c23540a2c17f1f4f09c1fde
 
       # expose port (change if your app uses something else)
       ports:
